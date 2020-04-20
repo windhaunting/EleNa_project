@@ -73,7 +73,7 @@ class EleNaApp(Frame):
         #frmInput.pack(side=TOP, expand=Yes, padx=1, pady=2,)
         frmMap.grid(row=1, column=0, columnspan=12, sticky=W)
         
-        path = "Amherst.png"
+        path = "output/Amherst.png"
 
         load = Image.open(path)
         render = ImageTk.PhotoImage(load.resize((500,400)))

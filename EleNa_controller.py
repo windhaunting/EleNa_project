@@ -29,11 +29,11 @@ class EleNa_Controller(object):
         key = self.get_key()
         graph_orig = ox.add_node_elevations(graph_orig, api_key=key)
         graph_orig = ox.add_edge_grades(graph_orig)
-        pkl.dump(graph_orig, open(city_name+"_city_graph.pkl","wb"))
+        pkl.dump(graph_orig, open("data/" + city_name+"_city_graph.pkl","wb"))
 
 		#projecting map on to 2D space
         graph_project = ox.project_graph(graph_orig)
-        pkl.dump(graph_project, open(city_name+"_city_graph_projected.pkl","wb"))
+        pkl.dump(graph_project, open("data/" + city_name+"_city_graph_projected.pkl","wb"))
         return graph_project, graph_orig
     
     def get_map_data_with_elevation(self, city_name, key):
@@ -47,11 +47,11 @@ class EleNa_Controller(object):
         key = self.get_key()
         graph_orig = ox.add_node_elevations(graph_orig, api_key=key)  # 'AIzaSyDVqjj0iKq0eNNHlmslH4fjoFgRj7n-5gs')   # from elevation
         graph_orig = ox.add_edge_grades(graph_orig)
-        pkl.dump(graph_orig, open(city_name+"_city_graph.pkl","wb"))
+        pkl.dump(graph_orig, open("data/" + city_name+"_city_graph.pkl","wb"))
     
         #project map on to 2D space
         graph_project = ox.project_graph(graph_orig)
-        pkl.dump(graph_project, open(city_name+"_city_graph_projected.pkl","wb"))
+        pkl.dump(graph_project, open("data/" + city_name+"_city_graph_projected.pkl","wb"))
         #print ("pkl: ", type(graph_orig))
         return graph_project, graph_orig
     
@@ -270,8 +270,8 @@ class EleNa_Controller(object):
         src_lat_long = (42.406670, -72.531005)
         destination_lat_long = (42.325745, -72.531929) # (42.376796, -72.501432)
          
-        graph_origin_file = "Amherst_city_graph.pkl"
-        graph_project_file = "Amherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
+        graph_origin_file = "data/Amherst_city_graph.pkl"
+        graph_project_file = "dataAmherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
         graph_project, graph_orig = controller_obj.read_map_data(False, graph_origin_file, graph_project_file)
         source = ox.get_nearest_node(graph_orig, (src_lat_long))
         destination = ox.get_nearest_node(graph_orig, (destination_lat_long))
@@ -297,8 +297,8 @@ class EleNa_Controller(object):
         src_lat_long = (42.406670, -72.531005)
         destination_lat_long = (42.325745, -72.531929)
    
-        graph_origin_file = "Amherst_city_graph.pkl"
-        graph_project_file = "Amherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
+        graph_origin_file = "data/Amherst_city_graph.pkl"
+        graph_project_file = "data/Amherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
         graph_project, graph_orig = controller_obj.read_map_data(False, graph_origin_file, graph_project_file)
         source = ox.get_nearest_node(graph_orig, (src_lat_long))
         destination = ox.get_nearest_node(graph_orig, (destination_lat_long))
