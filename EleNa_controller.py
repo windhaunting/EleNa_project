@@ -6,6 +6,7 @@ Created on Mon Mar 23 19:42:36 2020
 @author: fubao
 """
 import sys
+import folium
 import osmnx as ox
 import networkx as nx
 import numpy as np
@@ -440,7 +441,33 @@ class EleNa_Controller(object):
         
         #self.plot_two_routes(graph_orig, route2, route2, src_lat_long, destination_lat_long)
         
-        
+    def run(self, start, end, ele_mode, cost_percentage):
+        start = ox.geocode(start)
+        target = ox.geocode(end)
+
+        graph_origin_file = "data/Amherst_city_graph.pkl"
+        graph_project_file = "data/Amherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
+        graph_project, graph_orig = controller_obj.read_map_data(False, graph_origin_file, graph_project_file)
+        source = ox.get_nearest_node(graph_orig, (start))
+        destination = ox.get_nearest_node(graph_orig, (target))
+
+        shortest_path_length = self.get_ground_truth_shorest_length(graph_orig, source,
+                                                                    destination)  # self.get_total_length(graph_projection, shortest_path)
+        overhead = cost_percentage
+        allowed_cost = ((100.0 + overhead) * shortest_path_length) / 100.0
+
+        elevation_mode = ele_mode
+        route2 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost,
+                                                                     elevation_mode=elevation_mode)
+        x = ox.plot_route_folium(graph_orig, route2, route_color='green')
+
+        folium.Marker(location=start,
+                      icon=folium.Icon(color='red')).add_to(x)
+        folium.Marker(location=target,
+                      icon=folium.Icon(color='blue')).add_to(x)
+        filepath = "data/example.html"
+        x.save(filepath)
+        #webbrowser.open(filepath, new=2)
     
 if __name__== "__main__": 
     api_key = "AIzaSyDVqjj0iKq0eNNHlmslH4fjoFgRj7n-5gs"
@@ -460,6 +487,9 @@ if __name__== "__main__":
     node_b = 1709506533
     controller_obj.get_elevation_cost(graph_project, node_a, node_b)
     """
+    from_ = "umass amherst"
+    to_ = "one east pleasant st amherst ma 01002"
+    controller_obj.run(from_, to_, "maximize", 50)
     
-    controller_obj.test_dijkstra()
+    #controller_obj.test_dijkstra()
     #controller_obj.test2()
