@@ -16,6 +16,15 @@ import pickle as pkl
 from heapq import heappush
 from heapq import heappop
 
+
+class AStarNode(object):
+    # for A star cost, distance to source, heuristic to h
+    def __init__(self, f, g, h):
+        self.f = f
+        self.g = g
+        self.h = h
+        
+        
 class EleNa_Controller(object):
     def __init__(self, key):
         self.key = key
@@ -168,6 +177,59 @@ class EleNa_Controller(object):
         print ("get_dijkstra_evelation_shorest_perentage_route: ", route_by_length_minele)
         return route_by_length_minele
 
+    def get_a_star_shorest_perentage_route(self, graph, source, destination, allowed_cost, heuristic='shortest_path', elevation_mode='minimize'):
+        # use A star algorithm 
+        
+        frontier = []
+        heappush(frontier, (0, source))
+        came_from = {}
+        cost_so_far = {}            # use AStarNode as key
+        cost_so_far_ele = {}
+        came_from[source] = None
+        cost_so_far[source] =  AStarNode(0, 0, 0)       #  0 f
+        cost_so_far_ele[source] = AStarNode(0, 0, 0)    # 0
+        while len(frontier) != 0:
+            (dist, current) = heappop(frontier)
+            if current == destination:
+                if cost_so_far[current].g <= allowed_cost:
+                    break
+            for u, next, data in graph.edges(current, data=True):
+                
+                if heuristic == 'shortest_path':
+                    new_cost_g = cost_so_far[current].g + self.get_dist_cost(graph, current, next)
+                    new_cost_f = new_cost_g + self.get_dist_cost(graph, next, destination)    # f= g+h
+                    
+                    new_cost_ele_g = cost_so_far_ele[current].g
+                    elevation_cost_g = self.get_elevation_cost(graph, current, next)
+                    if elevation_cost_g > 0:
+                        new_cost_ele_g = new_cost_ele_g + elevation_cost_g 
+                        if self.get_elevation_cost(graph, next, destination) > 0:
+                            new_cost_ele_f =  new_cost_ele_g  + self.get_elevation_cost(graph, next, destination) 
+                        else:
+                            new_cost_ele_f = new_cost_ele_g
+                        
+                if next not in cost_so_far or new_cost_f < cost_so_far[next].f:
+                    cost_so_far_ele[next].f = new_cost_ele_f
+                    cost_so_far[next].f = new_cost_f
+                    priority = new_cost_ele_f
+                    if elevation_mode =='maximize':
+                        priority = priority
+                    heappush(frontier, (priority, next))
+                    came_from[next] = current
+                    
+        route_by_length_minele = []
+        p = destination
+        route_by_length_minele.append(p)
+        while p != source:
+            p = came_from[p]
+            route_by_length_minele.append(p)
+        route_by_length_minele = route_by_length_minele[::-1]
+        print ("get_a_star_shorest_perentage_route: ", route_by_length_minele)
+        return route_by_length_minele
+
+        
+        
+        
     def read_map_data(self, download_flag, graph_origin_file, graph_project_file):
         # if already downloaded
         if download_flag:  # read from graph file
@@ -271,7 +333,7 @@ class EleNa_Controller(object):
         destination_lat_long = (42.325745, -72.531929) # (42.376796, -72.501432)
          
         graph_origin_file = "data/Amherst_city_graph.pkl"
-        graph_project_file = "dataAmherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
+        graph_project_file = "data/Amherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
         graph_project, graph_orig = controller_obj.read_map_data(False, graph_origin_file, graph_project_file)
         source = ox.get_nearest_node(graph_orig, (src_lat_long))
         destination = ox.get_nearest_node(graph_orig, (destination_lat_long))
@@ -288,8 +350,10 @@ class EleNa_Controller(object):
         
         elevation_mode = "maximize"
         route2 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
-        
-        self.plot_two_routes(graph_orig, route1, route2, src_lat_long, destination_lat_long)
+        heuristic = 'shortest_path'
+        route3 = self.get_a_star_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
+       
+        self.plot_two_routes(graph_orig, route3, route2, src_lat_long, destination_lat_long)
 
         
     def test2(self):
@@ -340,5 +404,5 @@ if __name__== "__main__":
     controller_obj.get_elevation_cost(graph_project, node_a, node_b)
     """
     
-    #controller_obj.test_dijkstra()
-    controller_obj.test2()
+    controller_obj.test_dijkstra()
+    #controller_obj.test2()
