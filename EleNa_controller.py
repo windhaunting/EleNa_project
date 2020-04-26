@@ -156,6 +156,7 @@ class EleNa_Controller(object):
                 new_cost = cost_so_far[current] + self.get_dist_cost(graph, current, next)
                 new_cost_ele = cost_so_far_ele[current]
                 elevation_cost = self.get_elevation_cost(graph, current, next)
+                
                 if elevation_cost > 0:
                     new_cost_ele = new_cost_ele + elevation_cost 
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
@@ -176,6 +177,60 @@ class EleNa_Controller(object):
         route_by_length_minele = route_by_length_minele[::-1]
         print ("get_dijkstra_evelation_shorest_perentage_route: ", route_by_length_minele)
         return route_by_length_minele
+
+
+    def get_dijkstra_evelation_shorest_perentage_route(self, graph, source, destination, allowed_cost, elevation_mode='minimize'):
+        # control percentage
+        frontier = []
+        heappush(frontier, (0, source))
+        came_from = {}
+        cost_so_far = {}
+        cost_so_far_ele = {}
+        came_from[source] = None
+        cost_so_far[source] = 0
+        cost_so_far_ele[source] = 0
+        while len(frontier) != 0:
+            (dist, current) = heappop(frontier)
+            if current == destination:
+                if cost_so_far[current] <= allowed_cost:
+                    break
+            for u, next, data in graph.edges(current, data=True):
+                new_cost = cost_so_far[current] + self.get_dist_cost(graph, current, next)
+                new_cost_ele = cost_so_far_ele[current]
+                elevation_cost = self.get_elevation_cost(graph, current, next)
+                new_cost_ele_min = new_cost_ele 
+                new_cost_ele_max = new_cost_ele
+                if elevation_mode =='mimimize':
+                    if elevation_cost > 0:
+                        new_cost_ele_min = new_cost_ele 
+                    else:
+                        new_cost_ele_max = new_cost_ele + + elevation_cost
+                        
+                if elevation_mode =='maximize':
+                    if elevation_cost > 0:
+                        new_cost_ele_max = new_cost_ele + elevation_cost 
+                    else:
+                        new_cost_ele_max = new_cost_ele
+                
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far_ele[next] = new_cost_ele
+                    cost_so_far[next] = new_cost
+                    priority = new_cost_ele_min
+                    if elevation_mode =='maximize':
+                        priority = new_cost_ele_max
+                    heappush(frontier, ((priority, ), next))
+                    came_from[next] = current
+                    
+        route_by_length_minele = []
+        p = destination
+        route_by_length_minele.append(p)
+        while p != source:
+            p = came_from[p]
+            route_by_length_minele.append(p)
+        route_by_length_minele = route_by_length_minele[::-1]
+        print ("get_dijkstra_evelation_shorest_perentage_route: ", route_by_length_minele)
+        return route_by_length_minele
+
 
     def get_a_star_shorest_perentage_route(self, graph, source, destination, allowed_cost, heuristic='shortest_path', elevation_mode='minimize'):
         # use A star algorithm 
@@ -350,10 +405,13 @@ class EleNa_Controller(object):
         
         elevation_mode = "maximize"
         route2 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
+        elevation_mode = "mimimize"
+        route3 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
+
         heuristic = 'shortest_path'
-        route3 = self.get_a_star_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
+        #route4 = self.get_a_star_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
        
-        self.plot_two_routes(graph_orig, route3, route2, src_lat_long, destination_lat_long)
+        self.plot_two_routes(graph_orig, route2, route3, src_lat_long, destination_lat_long)
 
         
     def test2(self):
