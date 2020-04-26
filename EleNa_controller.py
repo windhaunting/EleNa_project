@@ -204,7 +204,7 @@ class EleNa_Controller(object):
                     if elevation_cost > 0:
                         new_cost_ele_min = new_cost_ele 
                     else:
-                        new_cost_ele_max = new_cost_ele + + elevation_cost
+                        new_cost_ele_min = new_cost_ele + elevation_cost
                         
                 if elevation_mode =='maximize':
                     if elevation_cost > 0:
@@ -267,8 +267,8 @@ class EleNa_Controller(object):
                     cost_so_far_ele[next].f = new_cost_ele_f
                     cost_so_far[next].f = new_cost_f
                     priority = new_cost_ele_f
-                    if elevation_mode =='maximize':
-                        priority = priority
+                    #if elevation_mode =='maximize':
+                    # priority = priority
                     heappush(frontier, (priority, next))
                     came_from[next] = current
                     
@@ -282,7 +282,6 @@ class EleNa_Controller(object):
         print ("get_a_star_shorest_perentage_route: ", route_by_length_minele)
         return route_by_length_minele
 
-        
         
         
     def read_map_data(self, download_flag, graph_origin_file, graph_project_file):
