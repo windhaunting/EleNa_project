@@ -10,7 +10,9 @@ import folium
 import osmnx as ox
 import networkx as nx
 import numpy as np
+import math
 
+from collections import defaultdict
 from plotly import graph_objs as go
 
 import pickle as pkl
@@ -20,10 +22,10 @@ from heapq import heappop
 
 class AStarNode(object):
     # for A star cost, distance to source, heuristic to h
-    def __init__(self, f, g, h):
-        self.f = f
-        self.g = g
-        self.h = h
+    def __init__(self):
+        self.f = 0
+        self.g = 0
+        self.h = 0
         
         
 class EleNa_Controller(object):
@@ -205,8 +207,8 @@ class EleNa_Controller(object):
         R = 6371  # km
         return 2*R * math.asin(math.sqrt(a)) #2*R*asin...
 
-    # algorithm: A*, control percentage of shortest path
 
+    # algorithm: A*, control percentage of shortest path
     def get_A_star_evelation_shorest_perentage_route(self, graph, source, destination, allowed_cost, heuristic='shortest_path', elevation_mode='minimize'):
         frontier = []
         heappush(frontier, (0, source))
@@ -338,7 +340,6 @@ class EleNa_Controller(object):
     
     
     def plot_one_route(self, graph, route, src_lat_long, destination_lat_long):
-        
         long = [] 
         lat = []  
         for i in route:
@@ -347,7 +348,6 @@ class EleNa_Controller(object):
              lat.append(point['y'])
      
         #self.plot_path(lat, long, src_lat_long, destination_lat_long)
-
     
         # create route colors
         rc1 = ['r'] * (len(route) - 1)
@@ -357,11 +357,8 @@ class EleNa_Controller(object):
         
     
     def plot_two_routes(self, graph, route1, route2, src_lat_long, destination_lat_long):
-        
-        
         #self.plot_path(lat, long, src_lat_long, destination_lat_long)
 
-        
         # create route colors
         rc1 = ['r'] * (len(route1) - 1)
         rc2 = ['b'] * len(route2)
@@ -399,10 +396,10 @@ class EleNa_Controller(object):
         elevation_mode = "minimize"
         route3 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
 
-        heuristic = 'shortest_path'
-        #route4 = self.get_a_star_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
+        heuristic = 'straight-line' #'shortest-path'
+        route4 = self.get_A_star_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
        
-        self.plot_two_routes(graph_orig, route2, route3, src_lat_long, destination_lat_long)
+        self.plot_two_routes(graph_orig, route3, route4, src_lat_long, destination_lat_long)
 
         
     def test2(self):
@@ -480,7 +477,7 @@ if __name__== "__main__":
     """
     from_ = "umass amherst"
     to_ = "one east pleasant st amherst ma 01002"
-    controller_obj.run(from_, to_, "maximize", 50)
+    #controller_obj.run(from_, to_, "maximize", 50)
     
-    #controller_obj.test_dijkstra()
+    controller_obj.test_dijkstra()
     #controller_obj.test2()
