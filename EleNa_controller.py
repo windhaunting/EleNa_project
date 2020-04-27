@@ -96,7 +96,7 @@ class EleNa_Controller(object):
         return nx.shortest_path_length(graph, source=source, target=destination, weight=weight, method='dijkstra')
 
 
-    # algorithm: dijkstra
+     # algorithm: dijkstra, not controlling of shortest path percentage
     def get_shortest_dijkstra_route(self, graph, source=0, destination=0, weight='length'):
         #algorithm 1:  consider length or elevation as weight cost
         
@@ -125,19 +125,20 @@ class EleNa_Controller(object):
                     heappush(frontier, (priority, next))
                     came_from[next] = current
                     
-        route_by_length_min_elevaltion = []
+        route_by_length_min_elev = []
         p = destination
-        route_by_length_min_elevaltion.append(p)
+        route_by_length_min_elev.append(p)
         while p != source:
             p = came_from[p]
-            route_by_length_min_elevaltion.append(p)
+            route_by_length_min_elev.append(p)
         
-        route_by_length_min_elevaltion = route_by_length_min_elevaltion[::-1]
+        route_by_length_min_elev = route_by_length_min_elev[::-1]
             
-        print ("get_shortest_dijkstra_route: ", route_by_length_min_elevaltion)
-        return route_by_length_min_elevaltion
+        print ("get_shortest_dijkstra_route: ", route_by_length_min_elev)
+        return route_by_length_min_elev
     
- 
+
+    #algorithm: dijkstra,  control percentage of shortest path
     def get_dijkstra_evelation_shorest_perentage_route(self, graph, source, destination, allowed_cost, elevation_mode='minimize'):
         # control percentage
         frontier = []
@@ -153,55 +154,13 @@ class EleNa_Controller(object):
             if current == destination:
                 if cost_so_far[current] <= allowed_cost:
                     break
-            for u, next, data in graph.edges(current, data=True):
-                new_cost = cost_so_far[current] + self.get_dist_cost(graph, current, next)
+            for u, next_node, data in graph.edges(current, data=True):
+                new_cost = cost_so_far[current] + self.get_dist_cost(graph, current, next_node)
                 new_cost_ele = cost_so_far_ele[current]
-                elevation_cost = self.get_elevation_cost(graph, current, next)
-                
-                if elevation_cost > 0:
-                    new_cost_ele = new_cost_ele + elevation_cost 
-                if next not in cost_so_far or new_cost < cost_so_far[next]:
-                    cost_so_far_ele[next] = new_cost_ele
-                    cost_so_far[next] = new_cost
-                    priority = new_cost_ele
-                    if elevation_mode =='maximize':
-                        priority = priority
-                    heappush(frontier, (priority, next))
-                    came_from[next] = current
-                    
-        route_by_length_minele = []
-        p = destination
-        route_by_length_minele.append(p)
-        while p != source:
-            p = came_from[p]
-            route_by_length_minele.append(p)
-        route_by_length_minele = route_by_length_minele[::-1]
-        print ("get_dijkstra_evelation_shorest_perentage_route: ", route_by_length_minele)
-        return route_by_length_minele
-
-
-    def get_dijkstra_evelation_shorest_perentage_route(self, graph, source, destination, allowed_cost, elevation_mode='minimize'):
-        # control percentage
-        frontier = []
-        heappush(frontier, (0, source))
-        came_from = {}
-        cost_so_far = {}
-        cost_so_far_ele = {}
-        came_from[source] = None
-        cost_so_far[source] = 0
-        cost_so_far_ele[source] = 0
-        while len(frontier) != 0:
-            (dist, current) = heappop(frontier)
-            if current == destination:
-                if cost_so_far[current] <= allowed_cost:
-                    break
-            for u, next, data in graph.edges(current, data=True):
-                new_cost = cost_so_far[current] + self.get_dist_cost(graph, current, next)
-                new_cost_ele = cost_so_far_ele[current]
-                elevation_cost = self.get_elevation_cost(graph, current, next)
+                elevation_cost = self.get_elevation_cost(graph, current, next_node)
                 new_cost_ele_min = new_cost_ele 
                 new_cost_ele_max = new_cost_ele
-                if elevation_mode =='mimimize':
+                if elevation_mode =='minimize':
                     if elevation_cost > 0:
                         new_cost_ele_min = new_cost_ele 
                     else:
@@ -213,75 +172,107 @@ class EleNa_Controller(object):
                     else:
                         new_cost_ele_max = new_cost_ele
                 
-                if next not in cost_so_far or new_cost < cost_so_far[next]:
-                    cost_so_far_ele[next] = new_cost_ele
-                    cost_so_far[next] = new_cost
+                if next_node not in cost_so_far or new_cost < cost_so_far[next_node]:
+                    cost_so_far_ele[next_node] = new_cost_ele
+                    cost_so_far[next_node] = new_cost
                     priority = new_cost_ele_min
                     if elevation_mode =='maximize':
                         priority = new_cost_ele_max
-                    heappush(frontier, ((priority, ), next))
-                    came_from[next] = current
+                    heappush(frontier, (priority, next_node))
+                    came_from[next_node] = current
                     
-        route_by_length_minele = []
+        route_by_length_min_elev = []
         p = destination
-        route_by_length_minele.append(p)
+        route_by_length_min_elev.append(p)
         while p != source:
             p = came_from[p]
-            route_by_length_minele.append(p)
-        route_by_length_minele = route_by_length_minele[::-1]
-        print ("get_dijkstra_evelation_shorest_perentage_route: ", route_by_length_minele)
-        return route_by_length_minele
+            route_by_length_min_elev.append(p)
+        route_by_length_min_elev = route_by_length_min_elev[::-1]
+        print ("get_dijkstra_evelation_shorest_perentage_route: ", route_by_length_min_elev)
+        return route_by_length_min_elev
 
-
-    def get_a_star_shorest_perentage_route(self, graph, source, destination, allowed_cost, heuristic='shortest_path', elevation_mode='minimize'):
-        # use A star algorithm 
+    def straight_line_length(self, graph, src_node, dst_node):
+        # straight line distance around the earth  as the heuristic
         
+        lat1 = graph.nodes[src_node]['y']  # lat_long_src[0]
+        lon1 = graph.nodes[src_node]['x']
+        
+        lat2 = graph.nodes[dst_node]['y']
+        lon2 = graph.nodes[dst_node]['x']
+        
+        p = math.pi/180
+        a = 0.5 - math.cos((lat2-lat1)*p)/2 + math.cos(lat1*p) * math.cos(lat2*p) * (1-math.cos((lon2-lon1)*p))/2
+        R = 6371  # km
+        return 2*R * math.asin(math.sqrt(a)) #2*R*asin...
+
+    # algorithm: A*, control percentage of shortest path
+
+    def get_A_star_evelation_shorest_perentage_route(self, graph, source, destination, allowed_cost, heuristic='shortest_path', elevation_mode='minimize'):
         frontier = []
         heappush(frontier, (0, source))
         came_from = {}
-        cost_so_far = {}            # use AStarNode as key
-        cost_so_far_ele = {}
+        cost_so_far = defaultdict(AStarNode)  # {}         f, g, h  ; f = g + h
+        cost_so_far_ele = defaultdict(AStarNode) # {}
         came_from[source] = None
-        cost_so_far[source] =  AStarNode(0, 0, 0)       #  0 f
-        cost_so_far_ele[source] = AStarNode(0, 0, 0)    # 0
+        cost_so_far[source] = AStarNode()
+        cost_so_far_ele[source] = AStarNode()
         while len(frontier) != 0:
             (dist, current) = heappop(frontier)
             if current == destination:
+                #print (" get_A_star_evelation_shorest_perentage_route new_cost_f: ", current)
                 if cost_so_far[current].g <= allowed_cost:
                     break
-            for u, next, data in graph.edges(current, data=True):
+            #print (" get_A_star_evelation_shorest_perentage_route new_cost_f: ", len(frontier))
+
+            for u, next_node, data in graph.edges(current, data=True):
+                new_cost_g = cost_so_far[current].g + self.get_dist_cost(graph, current, next_node)
+                #route_g = self.ground_truth_shorest_route(graph, next, destination, weight = None)
+                if heuristic == 'straight-line':   # straight-line distance to the goal
+                    length_g = self.straight_line_length(graph, next_node, destination)
+                elif heuristic == 'shortest-path':   # shortest path to the goal
+                    length_g = self.get_ground_truth_shorest_length(graph, next_node, destination, weight = None)
+                new_cost_f = new_cost_g + length_g 
                 
-                if heuristic == 'shortest_path':
-                    new_cost_g = cost_so_far[current].g + self.get_dist_cost(graph, current, next)
-                    new_cost_f = new_cost_g + self.get_dist_cost(graph, next, destination)    # f= g+h
-                    
-                    new_cost_ele_g = cost_so_far_ele[current].g
-                    elevation_cost_g = self.get_elevation_cost(graph, current, next)
+                elevation_cost_g = self.get_elevation_cost(graph, current, next_node)
+                new_cost_ele_g = cost_so_far_ele[current].g
+                
+                new_cost_ele_f = new_cost_ele_g  #  + elevation_cost_g
+                new_cost_ele_min_g = new_cost_ele_g
+                new_cost_ele_max_g = new_cost_ele_g
+                
+                if elevation_mode == 'minimize':
                     if elevation_cost_g > 0:
-                        new_cost_ele_g = new_cost_ele_g + elevation_cost_g 
-                        if self.get_elevation_cost(graph, next, destination) > 0:
-                            new_cost_ele_f =  new_cost_ele_g  + self.get_elevation_cost(graph, next, destination) 
-                        else:
-                            new_cost_ele_f = new_cost_ele_g
-                        
-                if next not in cost_so_far or new_cost_f < cost_so_far[next].f:
-                    cost_so_far_ele[next].f = new_cost_ele_f
-                    cost_so_far[next].f = new_cost_f
-                    priority = new_cost_ele_f
-                    #if elevation_mode =='maximize':
-                    # priority = priority
-                    heappush(frontier, (priority, next))
-                    came_from[next] = current
+                        new_cost_ele_min_g = new_cost_ele_g
+                    else:
+                        new_cost_ele_min_g = new_cost_ele_g + elevation_cost_g
+                
+                if elevation_mode == 'maximize':
+                    if elevation_cost_g > 0:
+                        new_cost_ele_max_g = new_cost_ele_g + elevation_cost_g 
+                    else:
+                        new_cost_ele_max_g = new_cost_ele_g
+                
+                if next_node not in cost_so_far or new_cost_f < cost_so_far[next_node].f:
+                    cost_so_far_ele[next_node].g = new_cost_ele_g
+                    cost_so_far_ele[next_node].f = new_cost_ele_f
+                    cost_so_far[next_node].g = new_cost_g
+                    cost_so_far[next_node].f = new_cost_f
+                    #print (" get_A_star_evelation_shorest_perentage_route next: ", len(frontier), next)
+                    priority = new_cost_ele_min_g
+                    if elevation_mode =='maximize':
+                        priority = new_cost_ele_max_g
+                    heappush(frontier, (priority, next_node))
+                    came_from[next_node] = current
                     
-        route_by_length_minele = []
+        route_by_length_min_elev = []
         p = destination
-        route_by_length_minele.append(p)
+        route_by_length_min_elev.append(p)
         while p != source:
             p = came_from[p]
-            route_by_length_minele.append(p)
-        route_by_length_minele = route_by_length_minele[::-1]
-        print ("get_a_star_shorest_perentage_route: ", route_by_length_minele)
-        return route_by_length_minele
+            route_by_length_min_elev.append(p)
+        route_by_length_min_elev = route_by_length_min_elev[::-1]
+        print ("get_A_star_evelation_shorest_perentage_route: ", route_by_length_min_elev)
+        return route_by_length_min_elev
 
         
         
@@ -405,7 +396,7 @@ class EleNa_Controller(object):
         
         elevation_mode = "maximize"
         route2 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
-        elevation_mode = "mimimize"
+        elevation_mode = "minimize"
         route3 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
 
         heuristic = 'shortest_path'
@@ -465,7 +456,7 @@ class EleNa_Controller(object):
                       icon=folium.Icon(color='red')).add_to(x)
         folium.Marker(location=target,
                       icon=folium.Icon(color='blue')).add_to(x)
-        filepath = "data/example.html"
+        filepath = "output/example.html"
         x.save(filepath)
         #webbrowser.open(filepath, new=2)
     
