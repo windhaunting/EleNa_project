@@ -396,12 +396,34 @@ class EleNa_Controller(object):
         elevation_mode = "minimize"
         route3 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
 
+
+
+    def test_Atar(self):
+        
+        src_lat_long = (42.406670, -72.531005)
+        destination_lat_long = (42.325745, -72.531929) # (42.376796, -72.501432)
+         
+        graph_origin_file = "data/Amherst_city_graph.pkl"
+        graph_project_file = "data/Amherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
+        graph_project, graph_orig = controller_obj.read_map_data(False, graph_origin_file, graph_project_file)
+        source = ox.get_nearest_node(graph_orig, (src_lat_long))
+        destination = ox.get_nearest_node(graph_orig, (destination_lat_long))
+        
+        print ("graph_project.source: ", source)
+        print ("graph_project.dst: ", destination)
+        route1 = self.ground_truth_shorest_route(graph_orig, source=source, destination=destination, weight='length')
+            
+        shortest_path_length = self.get_ground_truth_shorest_length(graph_orig, source, destination)       # self.get_total_length(graph_projection, shortest_path)
+        overhead = 50
+        allowed_cost = ((100.0 + overhead)*shortest_path_length)/100.0
+        
+        elevation_mode = "minimize"
         heuristic = 'straight-line' #'shortest-path'
         route4 = self.get_A_star_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
        
-        self.plot_two_routes(graph_orig, route3, route4, src_lat_long, destination_lat_long)
+        self.plot_two_routes(graph_orig, route1, route4, src_lat_long, destination_lat_long)
 
-        
+
     def test2(self):
         
         src_lat_long = (42.406670, -72.531005)
@@ -479,5 +501,6 @@ if __name__== "__main__":
     to_ = "one east pleasant st amherst ma 01002"
     #controller_obj.run(from_, to_, "maximize", 50)
     
-    controller_obj.test_dijkstra()
+    #controller_obj.test_dijkstra()
+    controller_obj.test_Atar()    
     #controller_obj.test2()
