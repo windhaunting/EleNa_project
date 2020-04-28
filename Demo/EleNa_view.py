@@ -41,7 +41,7 @@ def get_result():
 	webbrowser.open('file://' + os.path.realpath("data/Best.html"))
 	webbrowser.open('file://' + os.path.realpath("data/" + tol_dir + ".html"))
 
-	best = "images/best.png"
+	best = "images/Best.png"
 	# best = "output/output_1.png"
 	best_map = PhotoImage(file=best).subsample(3, 3)
 	best_img.configure(image=best_map)
