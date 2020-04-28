@@ -98,6 +98,72 @@ class EleNa_Controller(object):
         return nx.shortest_path_length(graph, source=source, target=destination, weight=weight, method='dijkstra')
 
 
+
+    #BFS
+    def exmaple(self, graph, source, target, allowed_cost):
+        target = 6604284938
+        unvisited = [(source, 0, allowed_cost, [source])]
+        visited = []
+        route_list = []
+        while len(unvisited) > 0:
+
+            #print("loop")
+            cur, ele_cost, dis_cost_left, route = unvisited[0]
+            unvisited = unvisited[1:]
+            #print(route)
+            if cur == target:
+                route_list.append(route)
+                break
+            else:
+                if dis_cost_left >= 0:
+                    for u, next, data in graph.edges(cur, data=True):
+                        if next not in route:
+                            new_ele_cost = self.get_elevation_cost(graph, u, next)
+                            distance_cost = self.get_dist_cost(graph, u, next)
+                            unvisited.append((next, ele_cost+new_ele_cost, dis_cost_left - distance_cost, route +[next]))
+
+        # print(route_list[0])
+        # print(len(route_list))
+        # def myFuc(e):
+        #     return e[1]
+        #
+        # route_list = sorted(route_list, key=myFuc, reverse=True)
+        # return route_list[0][3]
+        print(len(route_list))
+        return(route_list[0])
+
+    def test_BFS(self):
+
+        src_lat_long = (42.406670, -72.531005)
+        destination_lat_long = (42.325745, -72.531929)  # (42.376796, -72.501432)
+
+        graph_origin_file = "data/Amherst_city_graph.pkl"
+        graph_project_file = "data/Amherst_city_graph_projected.pkl"  # "Amherst_city_graph_projected.pkl"
+        graph_project, graph_orig = controller_obj.read_map_data(False, graph_origin_file, graph_project_file)
+        source = ox.get_nearest_node(graph_orig, (src_lat_long))
+        destination = ox.get_nearest_node(graph_orig, (destination_lat_long))
+
+        print("graph_project.source: ", source)
+        print("graph_project.dst: ", destination)
+        route1 = self.ground_truth_shorest_route(graph_orig, source=source, destination=destination, weight='length')
+
+        # route2 = self.get_shortest_dijkstra_route(graph_orig, source=source, destination=destination, weight='length')
+
+        shortest_path_length = self.get_ground_truth_shorest_length(graph_orig, source,
+                                                                    destination)  # self.get_total_length(graph_projection, shortest_path)
+        overhead = 50
+        allowed_cost = ((100.0 + overhead) * shortest_path_length) / 100.0
+
+        elevation_mode = "maximize"
+        route2 = self.exmaple(graph_orig, source, destination, allowed_cost)
+
+
+        # route4 = self.get_a_star_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
+
+        self.plot_two_routes(graph_orig, route1, route2, src_lat_long, destination_lat_long)
+    # algorithm: dijkstra
+
+
      # algorithm: dijkstra, not controlling of shortest path percentage
     def get_shortest_dijkstra_route(self, graph, source=0, destination=0, weight='length'):
         #algorithm 1:  consider length or elevation as weight cost
