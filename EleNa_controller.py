@@ -100,20 +100,18 @@ class EleNa_Controller(object):
 
 
     #BFS
-    def exmaple(self, graph, source, target, allowed_cost):
-        target = 6604284938
+       def bfs(self, graph, source, target, allowed_cost):
         unvisited = [(source, 0, allowed_cost, [source])]
-        visited = []
         route_list = []
         while len(unvisited) > 0:
-
-            #print("loop")
             cur, ele_cost, dis_cost_left, route = unvisited[0]
             unvisited = unvisited[1:]
-            #print(route)
-            if cur == target:
-                route_list.append(route)
+            if len(route_list) > 200:
                 break
+            if cur == target:
+                print(len(route_list))
+                route_list.append((route, ele_cost))
+
             else:
                 if dis_cost_left >= 0:
                     for u, next, data in graph.edges(cur, data=True):
@@ -124,17 +122,17 @@ class EleNa_Controller(object):
 
         # print(route_list[0])
         # print(len(route_list))
-        # def myFuc(e):
-        #     return e[1]
-        #
-        # route_list = sorted(route_list, key=myFuc, reverse=True)
-        # return route_list[0][3]
+        def myFuc(e):
+            return e[1]
+
+        route_list = sorted(route_list, key=myFuc, reverse=True)
         print(len(route_list))
-        return(route_list[0])
+        return(route_list[0][0])
+
 
     def test_BFS(self):
 
-        src_lat_long = (42.406670, -72.531005)
+        src_lat_long = (42.306670, -72.531005)
         destination_lat_long = (42.325745, -72.531929)  # (42.376796, -72.501432)
 
         graph_origin_file = "data/Amherst_city_graph.pkl"
@@ -142,6 +140,9 @@ class EleNa_Controller(object):
         graph_project, graph_orig = controller_obj.read_map_data(False, graph_origin_file, graph_project_file)
         source = ox.get_nearest_node(graph_orig, (src_lat_long))
         destination = ox.get_nearest_node(graph_orig, (destination_lat_long))
+        source = 4848169514
+        destination = 6699570833
+        #destination = 66746634
 
         print("graph_project.source: ", source)
         print("graph_project.dst: ", destination)
@@ -151,11 +152,11 @@ class EleNa_Controller(object):
 
         shortest_path_length = self.get_ground_truth_shorest_length(graph_orig, source,
                                                                     destination)  # self.get_total_length(graph_projection, shortest_path)
-        overhead = 50
+        overhead = 30
         allowed_cost = ((100.0 + overhead) * shortest_path_length) / 100.0
 
         elevation_mode = "maximize"
-        route2 = self.exmaple(graph_orig, source, destination, allowed_cost)
+        route2 = self.bfs(graph_orig, source, destination, allowed_cost)
 
 
         # route4 = self.get_a_star_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
