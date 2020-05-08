@@ -1,4 +1,4 @@
-# we develop a software system for navigating:
+# EleNa 
 
-# from a source to a destination considering maximum and minimum elevation with a percentage x of shortest path length.
+We develop a software system for navigating from a source to a destination considering maximum and minimum elevation with a percentage x of shortest path length.
 
