@@ -11,6 +11,7 @@ import osmnx as ox
 import networkx as nx
 import numpy as np
 import math
+import time
 
 from collections import defaultdict
 from plotly import graph_objs as go
@@ -18,7 +19,6 @@ from plotly import graph_objs as go
 import pickle as pkl
 from heapq import heappush
 from heapq import heappop
-
 
 class AStarNode(object):
     # for A star cost, distance to source, heuristic to h
@@ -512,32 +512,46 @@ class EleNa_Controller(object):
         source = ox.get_nearest_node(graph_orig, (src_lat_long))
         destination = ox.get_nearest_node(graph_orig, (destination_lat_long))
         
+        start1 = time.time()
 
         route1 = self.ground_truth_shorest_route(graph_orig, source, destination, weight='length')
-            
-        shortest_path_length = self.get_ground_truth_shorest_length(graph_orig, source, destination)       # self.get_total_length(graph_projection, shortest_path)
-        overhead = 50
-        allowed_cost = ((100.0 + overhead)*shortest_path_length)/100.0
+        elapsed1 = time.time() - start1
+        
         
         shortest_path_length = self.get_ground_truth_shorest_length(graph_orig, source, destination)       # self.get_total_length(graph_projection, shortest_path)
         overhead = 50
         allowed_cost = ((100.0 + overhead)*shortest_path_length)/100.0
         
-        elevation_mode = "minimize"
-        route2 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
+        shortest_path_length = self.get_ground_truth_shorest_length(graph_orig, source, destination)       # self.get_total_length(graph_projection, shortest_path)
+        overhead = 50
+        allowed_cost = ((100.0 + overhead)*shortest_path_length)/100.0
+        
+        elevation_mode = "maximize"  # "minimize"
 
-        total_distance2 = self.get_distance_length_by_route(graph_orig, route2)
-        
-        print ("dist comparision: ", shortest_path_length, total_distance2)
-        elevation_mode = "minimize"
+        start2 = time.time()
+        route2 = self.get_dijkstra_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, elevation_mode=elevation_mode)
+        elapsed2 = time.time() - start2
+
+        #total_distance2 = self.get_distance_length_by_route(graph_orig, route2)
+        total_elev1 = self.get_total_elevation(graph_orig, route1)
+        #total_elev2 = self.get_total_elevation(graph_orig, route2)
+        elevation_mode = "maximize"   # "minimize"
         heuristic = 'straight-line' #'shortest-path'
-        route3 = self.get_A_star_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
-       
-        self.plot_two_routes(graph_orig, route1, route2, src_lat_long, destination_lat_long)
         
+        start3 = time.time()
+        route3 = self.get_A_star_evelation_shorest_perentage_route(graph_orig, source, destination, allowed_cost, heuristic=heuristic, elevation_mode=elevation_mode)
+        elapsed3 = time.time() - start3
+
+        total_distance3 = self.get_distance_length_by_route(graph_orig, route3)
+        total_elev3 = self.get_total_elevation(graph_orig, route3)
+        print ("dist comparision: ", shortest_path_length, total_distance3, total_elev1, total_elev3)
+        self.plot_two_routes(graph_orig, route1, route3, src_lat_long, destination_lat_long)
+        
+        print ("time1: ", elapsed1, elapsed2, elapsed3)
+
         #self.plot_three_routes(graph_orig, route1, route2, route3, src_lat_long, destination_lat_long)
 
-
+        
 
     def test2(self):
         
@@ -598,7 +612,7 @@ if __name__== "__main__":
     api_key = "AIzaSyDVqjj0iKq0eNNHlmslH4fjoFgRj7n-5gs"
     controller_obj = EleNa_Controller(api_key)
     
-
+    
     # download map data
     """
     city_name = 'Amherst'
@@ -617,6 +631,6 @@ if __name__== "__main__":
     #controller_obj.run(from_, to_, "maximize", 50)
     
     #controller_obj.test_dijkstra()
-    controller_obj.test_Atar()    
+    #controller_obj.test_Atar()    
     #controller_obj.test2()
     controller_obj.test_dijkstra_Astar()

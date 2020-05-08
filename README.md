@@ -1,1 +1,4 @@
-# EleNa_project
+# we develop a software system for navigating:
+
+# from a source to a destination considering maximum and minimum elevation with a percentage x of shortest path length.
+
